@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+ 
+  api:
+    image: eassbhhtgu/homeautomationapi:latest
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+
+      AliasesLookup:elgato: 3c6a9d14d765
+      Elgato:Port: "9123"
+      Elgato:Scheme: http
+      NetworkDiscoveryApi:BaseAddress: http://discovery
+    ports:
+    - 38925:80/tcp
+
+  discovery:
+    image: eassbhhtgu/networkdiscoveryapi:latest
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+
+      Router:PathToPrivateKey: /run/secrets/id_rsa
+    secrets:
+    - source: id_rsa
+
+secrets:
+  id_rsa:
+    file: ${USERPROFILE}/.ssh/id_rsa

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.31911.260
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAutomationApi.WebApi", "HomeAutomationApi.WebApi\HomeAutomationApi.WebApi.csproj", "{593A7431-3512-448D-9EF6-3CFDCE630B25}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAutomationApi.WebApi.Tests", "HomeAutomationApi.WebApi.Tests\HomeAutomationApi.WebApi.Tests.csproj", "{0D3AD673-CB6F-4666-A632-07E09BBB3C8A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{593A7431-3512-448D-9EF6-3CFDCE630B25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{593A7431-3512-448D-9EF6-3CFDCE630B25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{593A7431-3512-448D-9EF6-3CFDCE630B25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{593A7431-3512-448D-9EF6-3CFDCE630B25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D3AD673-CB6F-4666-A632-07E09BBB3C8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D3AD673-CB6F-4666-A632-07E09BBB3C8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D3AD673-CB6F-4666-A632-07E09BBB3C8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D3AD673-CB6F-4666-A632-07E09BBB3C8A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {59316675-FBF4-441D-9137-F912207EAAD3}
+	EndGlobalSection
+EndGlobal
