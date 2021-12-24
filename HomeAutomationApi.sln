@@ -7,6 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAutomationApi.WebApi", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAutomationApi.WebApi.Tests", "HomeAutomationApi.WebApi.Tests\HomeAutomationApi.WebApi.Tests.csproj", "{0D3AD673-CB6F-4666-A632-07E09BBB3C8A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{762CE35E-68CD-48B4-9218-678F38C53B15}"
+	ProjectSection(SolutionItems) = preProject
+		build.sh = build.sh
+		docker-compose.yml = docker-compose.yml
+		Dockerfile = Dockerfile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

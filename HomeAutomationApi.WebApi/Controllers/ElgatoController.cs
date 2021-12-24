@@ -36,24 +36,64 @@ public class ElgatoController : ControllerBase
 
 		using var cts = new CancellationTokenSource(millisecondsDelay: 3_000);
 
-		PhysicalAddress mac;
-		{
-			if (!_aliasesLookup.TryGetValue(alias, out mac!))
-			{
-				return NotFound(new { alias, });
-			}
-		}
+		var ip = await GetIPAddressAsync(alias, cts.Token);
 
-		IPAddress ip;
-		{
-			var response = await _networkDiscoveryApiClient.GetLeasesAsync(cts.Token)
-				.SingleOrDefaultAsync(response => response.physicalAddress.Equals(mac));
-
-			if (response is null) return NotFound(new { mac, });
-			(_, _, ip, _, _) = response;
-		}
+		if (ip is null) return NotFound(new { alias, });
 
 		var status = await _elgatoClient.GetLightAsync(ip, cts.Token);
 		return Ok(new { on = status.on == 1, status.brightness, status.temperature, });
+	}
+
+	[HttpPut]
+	[Route("{alias:minlength(1)}/power/{power:alpha:minlength(1)}")]
+	public async Task<IActionResult> SetLightPowerAsync(string alias, PowerStatuses power)
+	{
+		_logger.LogInformation("{route} : {arg} {arg}", nameof(SetLightPowerAsync), alias, power);
+
+		using var cts = new CancellationTokenSource(millisecondsDelay: 3_000);
+
+		var ip = await GetIPAddressAsync(alias, cts.Token);
+
+		if (ip is null) return NotFound(new { alias, });
+
+		var status = await _elgatoClient.GetLightAsync(ip, cts.Token);
+
+		status = power switch
+		{
+			PowerStatuses.Off => status with { on = 0, },
+			PowerStatuses.On => status with { on = 1, },
+			PowerStatuses.Toggle => status with { on = status.on == 1 ? (byte)0 : (byte)1, },
+			_ => throw new NotSupportedException(),
+		};
+
+		await _elgatoClient.SetLightAsync(ip, status, cts.Token);
+
+		status = await _elgatoClient.GetLightAsync(ip, cts.Token);
+
+		return Ok(new { on = status.on == 1, status.brightness, status.temperature, });
+	}
+
+	private async Task<IPAddress?> GetIPAddressAsync(string alias, CancellationToken? cancellationToken = default)
+	{
+		var physicalAddress = _aliasesLookup.TryGetValue(alias, out var value) ? value : default;
+
+		if (physicalAddress is null)
+		{
+			return default;
+		}
+
+		var response = await _networkDiscoveryApiClient.GetLeasesAsync(cancellationToken)
+			.SingleAsync(r => r.physicalAddress.Equals(physicalAddress), cancellationToken ?? CancellationToken.None);
+
+		return response?.ipAddress;
+	}
+
+	[Flags]
+	public enum PowerStatuses : byte
+	{
+		None = 0,
+		Off = 1,
+		On = 2,
+		Toggle = 4,
 	}
 }
