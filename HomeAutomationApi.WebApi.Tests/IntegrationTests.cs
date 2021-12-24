@@ -10,20 +10,22 @@ public class IntegrationTests
 	[InlineData("put", "/elgato/elgato/power/off", @"^{""on"":false,""brightness"":\d+,""temperature"":\d+}$")]
 	[InlineData("put", "/elgato/elgato/power/on", @"^{""on"":true,""brightness"":\d+,""temperature"":\d+}$")]
 	[InlineData("put", "/elgato/elgato/power/toggle", @"^{""on"":(?:false|true),""brightness"":\d+,""temperature"":\d+}$")]
-	public async Task Test1(string method, string relativeUriString, string expectedResponsePattern)
+	[InlineData("put", "/elgato/elgato/brightness/brightest", @"^{""on"":true,""brightness"":100,""temperature"":\d+}$")]
+	[InlineData("put", "/elgato/elgato/brightness/brighter", @"^{""on"":true,""brightness"":83,""temperature"":\d+}$")]
+	[InlineData("put", "/elgato/elgato/brightness/bright", @"^{""on"":true,""brightness"":67,""temperature"":\d+}$")]
+	[InlineData("put", "/elgato/elgato/brightness/half", @"^{""on"":true,""brightness"":50,""temperature"":\d+}$")]
+	[InlineData("put", "/elgato/elgato/brightness/dim", @"^{""on"":true,""brightness"":34,""temperature"":\d+}$")]
+	[InlineData("put", "/elgato/elgato/brightness/dimmer", @"^{""on"":true,""brightness"":17,""temperature"":\d+}$")]
+	[InlineData("put", "/elgato/elgato/brightness/dimmest", @"^{""on"":true,""brightness"":0,""temperature"":\d+}$")]
+	public async Task Test1(string httpMethod, string relativeUriString, string expectedResponsePattern)
 	{
 		// https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#basic-tests-with-the-default-webapplicationfactory
 		string responseJson;
 		{
 			// Arrange
-			var httpMethod = method switch
-			{
-				"get" => HttpMethod.Get,
-				"put" => HttpMethod.Put,
-			};
 			await using var application = new WebApplicationFactory<Program>();
 			var client = application.CreateClient();
-			var request = new HttpRequestMessage(httpMethod, relativeUriString);
+			var request = new HttpRequestMessage(new HttpMethod(httpMethod), relativeUriString);
 
 			// Act
 			var response = await client.SendAsync(request);

@@ -73,6 +73,26 @@ public class ElgatoController : ControllerBase
 		return Ok(new { on = status.on == 1, status.brightness, status.temperature, });
 	}
 
+	[HttpPut]
+	[Route("{alias:minlength(1)}/brightness/{brightness:minlength(1)}")]
+	public async Task<IActionResult> SetBrightnessAsync(string alias, Brightnesses brightness)
+	{
+		_logger.LogInformation("{route} : {arg} {arg}", nameof(SetBrightnessAsync), alias, brightness);
+
+		using var cts = new CancellationTokenSource(millisecondsDelay: 3_000);
+
+		var ip = await GetIPAddressAsync(alias, cts.Token);
+
+		if (ip is null) return NotFound(new { alias, });
+
+		var status = await _elgatoClient.GetLightAsync(ip, cts.Token);
+		status = status with { on = 1, brightness = (byte)brightness, };
+		await _elgatoClient.SetLightAsync(ip, status, cts.Token);
+		status = await _elgatoClient.GetLightAsync(ip, cts.Token);
+
+		return Ok(new { on = status.on == 1, status.brightness, status.temperature, });
+	}
+
 	private async Task<IPAddress?> GetIPAddressAsync(string alias, CancellationToken? cancellationToken = default)
 	{
 		var physicalAddress = _aliasesLookup.TryGetValue(alias, out var value) ? value : default;
@@ -95,5 +115,17 @@ public class ElgatoController : ControllerBase
 		Off = 1,
 		On = 2,
 		Toggle = 4,
+	}
+
+	[Flags]
+	public enum Brightnesses : byte
+	{
+		Dimmest = 0,
+		Dimmer = 17,
+		Dim = 34,
+		Half = 50,
+		Bright = 67,
+		Brighter = 83,
+		Brightest = 100,
 	}
 }
