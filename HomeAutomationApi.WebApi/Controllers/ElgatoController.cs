@@ -12,20 +12,28 @@ public class ElgatoController : ControllerBase
 {
 	private readonly ILogger<ElgatoController> _logger;
 	private readonly IReadOnlyDictionary<string, PhysicalAddress> _aliasesLookup;
+	private readonly IReadOnlyDictionary<string, double> _brightnessesLookup;
+	private readonly IReadOnlyDictionary<string, short> _temperaturesLookup;
 	private readonly Helpers.NetworkDiscoveryApi.IClient _networkDiscoveryApiClient;
-	private readonly Helpers.Elgato.IElgatoClient _elgatoClient;
+	private readonly Helpers.Elgato.IElgatoService _elgatoService;
 
 	public ElgatoController(
 		ILogger<ElgatoController> logger,
 		IOptions<Models.AliasesLookup> aliasesLookupOptions,
+		IOptions<Models.BrightnessesLookup> brightnessesLookupOptions,
+		IOptions<Models.TemperaturesLookup> temperaturesLookupOptions,
 		Helpers.NetworkDiscoveryApi.IClient networkDiscoveryApiClient,
-		Helpers.Elgato.IElgatoClient elgatoClient)
+		Helpers.Elgato.IElgatoService elgatoService)
 	{
 		_logger = logger;
 		_aliasesLookup = Guard.Argument(aliasesLookupOptions).NotNull().Wrap(o => o.Value)
 			.NotNull().NotEmpty().DoesNotContainNull().Value;
+		_brightnessesLookup = Guard.Argument(brightnessesLookupOptions).NotNull().Wrap(o => o.Value)
+			.NotNull().NotEmpty().DoesNotContainNull().Value;
+		_temperaturesLookup = Guard.Argument(temperaturesLookupOptions).NotNull().Wrap(o => o.Value)
+			.NotNull().NotEmpty().DoesNotContainNull().Value;
 		_networkDiscoveryApiClient = Guard.Argument(networkDiscoveryApiClient).NotNull().Value;
-		_elgatoClient = Guard.Argument(elgatoClient).NotNull().Value;
+		_elgatoService = Guard.Argument(elgatoService).NotNull().Value;
 	}
 
 	[HttpGet]
@@ -40,8 +48,8 @@ public class ElgatoController : ControllerBase
 
 		if (ip is null) return NotFound(new { alias, });
 
-		var status = await _elgatoClient.GetLightAsync(ip, cts.Token);
-		return Ok(new { on = status.on == 1, status.brightness, status.temperature, });
+		var (on, brightness, kelvins) = await _elgatoService.GetLightSettingsAsync(ip, cts.Token);
+		return Ok(new { on, brightness, kelvins, });
 	}
 
 	[HttpPut]
@@ -56,28 +64,31 @@ public class ElgatoController : ControllerBase
 
 		if (ip is null) return NotFound(new { alias, });
 
-		var status = await _elgatoClient.GetLightAsync(ip, cts.Token);
-
-		status = power switch
+		var task = power switch
 		{
-			PowerStatuses.Off => status with { on = 0, },
-			PowerStatuses.On => status with { on = 1, },
-			PowerStatuses.Toggle => status with { on = status.on == 1 ? (byte)0 : (byte)1, },
-			_ => throw new NotSupportedException(),
+			PowerStatuses.Off => _elgatoService.SetPowerStateAsync(ip, false, cts.Token),
+			PowerStatuses.On => _elgatoService.SetPowerStateAsync(ip, true, cts.Token),
+			PowerStatuses.Toggle => _elgatoService.TogglePowerStateAsync(ip, cts.Token),
+			_ => throw new ArgumentOutOfRangeException(nameof(power), power, $"unknown {nameof(power)} value: {power}"),
 		};
 
-		await _elgatoClient.SetLightAsync(ip, status, cts.Token);
+		await task;
 
-		status = await _elgatoClient.GetLightAsync(ip, cts.Token);
+		var (on, brightness, kelvins) = await _elgatoService.GetLightSettingsAsync(ip, cts.Token);
 
-		return Ok(new { on = status.on == 1, status.brightness, status.temperature, });
+		return Ok(new { on, brightness, kelvins, });
 	}
 
 	[HttpPut]
 	[Route("{alias:minlength(1)}/brightness/{brightness:minlength(1)}")]
-	public async Task<IActionResult> SetBrightnessAsync(string alias, Brightnesses brightness)
+	public async Task<IActionResult> SetBrightnessAsync(string alias, [FromRoute(Name = "brightness")] string brightnessString)
 	{
-		_logger.LogInformation("{route} : {arg} {arg}", nameof(SetBrightnessAsync), alias, brightness);
+		_logger.LogInformation("{route} : {arg} {arg}", nameof(SetBrightnessAsync), alias, brightnessString);
+
+		if (!_brightnessesLookup.TryGetValue(brightnessString, out var brightness))
+		{
+			return BadRequest(new { message = $"unrecognized {nameof(brightness)}: {brightnessString}.  should be one of: " + string.Join(',', _brightnessesLookup.Keys), });
+		}
 
 		using var cts = new CancellationTokenSource(millisecondsDelay: 3_000);
 
@@ -85,12 +96,35 @@ public class ElgatoController : ControllerBase
 
 		if (ip is null) return NotFound(new { alias, });
 
-		var status = await _elgatoClient.GetLightAsync(ip, cts.Token);
-		status = status with { on = 1, brightness = (byte)brightness, };
-		await _elgatoClient.SetLightAsync(ip, status, cts.Token);
-		status = await _elgatoClient.GetLightAsync(ip, cts.Token);
+		await _elgatoService.SetBrightnessAsync(ip, brightness, cts.Token);
 
-		return Ok(new { on = status.on == 1, status.brightness, status.temperature, });
+		(var on, brightness, var kelvins) = await _elgatoService.GetLightSettingsAsync(ip, cts.Token);
+
+		return Ok(new { on, brightness, kelvins, });
+	}
+
+	[HttpPut]
+	[Route("{alias:minlength(1)}/temperature/{temperature:minlength(1)}")]
+	public async Task<IActionResult> SetTemperatureAsync(string alias, [FromRoute(Name = "temperature")] string temperatureString)
+	{
+		_logger.LogInformation("{route} : {arg} {arg}", nameof(SetTemperatureAsync), alias, temperatureString);
+
+		if (!_temperaturesLookup.TryGetValue(temperatureString, out var kelvins))
+		{
+			return BadRequest(new { message = $"unrecognized {nameof(kelvins)}: {temperatureString}.  should be one of: " + string.Join(',', _temperaturesLookup.Keys), });
+		}
+
+		using var cts = new CancellationTokenSource(millisecondsDelay: 3_000);
+
+		var ip = await GetIPAddressAsync(alias, cts.Token);
+
+		if (ip is null) return NotFound(new { alias, });
+
+		await _elgatoService.SetTemperatureAsync(ip, kelvins, cts.Token);
+
+		(var on, var brightness, kelvins) = await _elgatoService.GetLightSettingsAsync(ip, cts.Token);
+
+		return Ok(new { on, brightness, kelvins, });
 	}
 
 	private async Task<IPAddress?> GetIPAddressAsync(string alias, CancellationToken? cancellationToken = default)
@@ -115,17 +149,5 @@ public class ElgatoController : ControllerBase
 		Off = 1,
 		On = 2,
 		Toggle = 4,
-	}
-
-	[Flags]
-	public enum Brightnesses : byte
-	{
-		Dimmest = 0,
-		Dimmer = 17,
-		Dim = 34,
-		Half = 50,
-		Bright = 67,
-		Brighter = 83,
-		Brightest = 100,
 	}
 }

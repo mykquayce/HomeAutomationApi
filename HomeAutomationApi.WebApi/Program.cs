@@ -2,7 +2,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services
-	.JsonConfig<HomeAutomationApi.WebApi.Models.AliasesLookup>(builder.Configuration.GetSection(nameof(HomeAutomationApi.WebApi.Models.AliasesLookup)));
+	.JsonConfig<HomeAutomationApi.WebApi.Models.AliasesLookup>(builder.Configuration.GetSection(nameof(HomeAutomationApi.WebApi.Models.AliasesLookup)))
+	.Configure<HomeAutomationApi.WebApi.Models.BrightnessesLookup>(builder.Configuration.GetSection(nameof(HomeAutomationApi.WebApi.Models.BrightnessesLookup)))
+	.Configure<HomeAutomationApi.WebApi.Models.TemperaturesLookup>(builder.Configuration.GetSection(nameof(HomeAutomationApi.WebApi.Models.TemperaturesLookup)));
+
+builder.Services
+	.AddTransient<Helpers.Elgato.IElgatoService, Helpers.Elgato.Concrete.ElgatoService>();
 
 builder.Services
 	.AddHttpClient<Helpers.NetworkDiscoveryApi.IClient, Helpers.NetworkDiscoveryApi.Concrete.Client>(config =>

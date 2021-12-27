@@ -1,44 +1,96 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using System.Text.Json;
 using Xunit;
 
 namespace HomeAutomationApi.WebApi.Tests;
 
-public class IntegrationTests
+public class IntegrationTests : IClassFixture<Fixtures.IntegrationTestsFixture>
 {
-	[Theory]
-	[InlineData("get", "/elgato/elgato", @"^{""on"":(?:false|true),""brightness"":\d+,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/power/off", @"^{""on"":false,""brightness"":\d+,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/power/on", @"^{""on"":true,""brightness"":\d+,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/power/toggle", @"^{""on"":(?:false|true),""brightness"":\d+,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/brightness/brightest", @"^{""on"":true,""brightness"":100,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/brightness/brighter", @"^{""on"":true,""brightness"":83,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/brightness/bright", @"^{""on"":true,""brightness"":67,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/brightness/half", @"^{""on"":true,""brightness"":50,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/brightness/dim", @"^{""on"":true,""brightness"":34,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/brightness/dimmer", @"^{""on"":true,""brightness"":17,""temperature"":\d+}$")]
-	[InlineData("put", "/elgato/elgato/brightness/dimmest", @"^{""on"":true,""brightness"":0,""temperature"":\d+}$")]
-	public async Task Test1(string httpMethod, string relativeUriString, string expectedResponsePattern)
+	private readonly HttpClient _httpClient;
+
+	public IntegrationTests(Fixtures.IntegrationTestsFixture fixture)
 	{
-		// https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0#basic-tests-with-the-default-webapplicationfactory
-		string responseJson;
+		_httpClient = fixture.HttpClient;
+	}
+
+	[Theory]
+	[InlineData("brightest", 1)]
+	[InlineData("brighter", .83)]
+	[InlineData("bright", .67)]
+	[InlineData("half", .5)]
+	[InlineData("dim", .34)]
+	[InlineData("dimmer", .17)]
+	[InlineData("dimmest", 0)]
+	public async Task BrightnessTests(string brightness, double expected)
+	{
+		Light? light;
 		{
 			// Arrange
-			await using var application = new WebApplicationFactory<Program>();
-			var client = application.CreateClient();
-			var request = new HttpRequestMessage(new HttpMethod(httpMethod), relativeUriString);
+			var relativeUriString = "/elgato/elgato/brightness/" + brightness;
 
 			// Act
-			var response = await client.SendAsync(request);
+			var response = await _httpClient.PutAsync(relativeUriString, default);
 
 			// Assert
-			Assert.True(response.IsSuccessStatusCode);
-			responseJson = await response.Content.ReadAsStringAsync();
+			await using var stream = await response.Content.ReadAsStreamAsync();
+			stream.Position = 0;
+			light = await JsonSerializer.DeserializeAsync<Light>(stream);
 		}
 
-		// Assert
-		Assert.NotNull(responseJson);
-		Assert.NotEmpty(responseJson);
-		Assert.StartsWith("{", responseJson);
-		Assert.Matches(expectedResponsePattern, responseJson);
+		Assert.NotNull(light);
+		Assert.Equal(expected, light!.brightness, precision: 2);
 	}
+
+	[Theory]
+	[InlineData("off", false)]
+	[InlineData("on", true)]
+	public async Task PowerTests(string power, bool expected)
+	{
+		Light? light;
+		{
+			// Arrange
+			var relativeUriString = "/elgato/elgato/power/" + power;
+
+			// Act
+			var response = await _httpClient.PutAsync(relativeUriString, default);
+
+			// Assert
+			await using var stream = await response.Content.ReadAsStreamAsync();
+			stream.Position = 0;
+			light = await JsonSerializer.DeserializeAsync<Light>(stream);
+		}
+
+		Assert.NotNull(light);
+		Assert.Equal(expected, light!.on);
+	}
+
+	[Theory]
+	[InlineData("coolest", 7_000)]
+	[InlineData("cooler", 6_317)]
+	[InlineData("cool", 5_633)]
+	[InlineData("half", 4_950)]
+	[InlineData("warm", 4_267)]
+	[InlineData("warmer", 3_583)]
+	[InlineData("warmest", 2_900)]
+	public async Task TemperaturesTests(string temperature, int expected)
+	{
+		Light? light;
+		{
+			// Arrange
+			var relativeUriString = "/elgato/elgato/temperature/" + temperature;
+
+			// Act
+			var response = await _httpClient.PutAsync(relativeUriString, default);
+
+			// Assert
+			await using var stream = await response.Content.ReadAsStreamAsync();
+			stream.Position = 0;
+			light = await JsonSerializer.DeserializeAsync<Light>(stream);
+		}
+
+		Assert.NotNull(light);
+		Assert.InRange(light!.kelvins, expected - 10, expected + 10);
+	}
+
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "3rd-party")]
+	public record Light(bool on, double brightness, short kelvins);
 }
