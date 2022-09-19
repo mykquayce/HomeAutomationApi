@@ -2,6 +2,7 @@ using System.Net;
 
 namespace HomeAutomationApi.Services.Tests;
 
+[Collection(nameof(NonParallelCollectionDefinitionClass))]
 public class NetworkDiscoveryServiceTests : IClassFixture<Fixtures.NetworkDiscoveryFixture>
 {
 	private readonly Helpers.NetworkDiscoveryApi.IService _sut;
