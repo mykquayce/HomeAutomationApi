@@ -1,4 +1,4 @@
-﻿namespace HomeAutomationApi.Services.Tests;
+﻿namespace HomeAutomationApi.Services.Tests.LibrariesTests;
 
 [Collection(nameof(NonParallelCollectionDefinitionClass))]
 public class TPLinkServiceTests

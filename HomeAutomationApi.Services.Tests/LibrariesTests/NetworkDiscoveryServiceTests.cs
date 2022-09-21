@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace HomeAutomationApi.Services.Tests;
+namespace HomeAutomationApi.Services.Tests.LibrariesTests;
 
 [Collection(nameof(NonParallelCollectionDefinitionClass))]
 public class NetworkDiscoveryServiceTests : IClassFixture<Fixtures.NetworkDiscoveryFixture>

@@ -1,5 +1,4 @@
-﻿using Helpers.TPLink;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace HomeAutomationApi.Services.Tests.Fixtures;
 
@@ -10,15 +9,15 @@ public sealed class TPLinkFixture : IDisposable
 	public TPLinkFixture()
 	{
 		_serviceProvider = new ServiceCollection()
-			.AddTPLink(Config.Defaults)
+			.AddTPLink(Helpers.TPLink.Config.Defaults)
 			.BuildServiceProvider();
 
-		Client = _serviceProvider.GetRequiredService<ITPLinkClient>();
-		Service = _serviceProvider.GetRequiredService<ITPLinkService>();
+		Client = _serviceProvider.GetRequiredService<Helpers.TPLink.ITPLinkClient>();
+		Service = _serviceProvider.GetRequiredService<Helpers.TPLink.ITPLinkService>();
 	}
 
-	public ITPLinkClient Client { get; }
-	public ITPLinkService Service { get; }
+	public Helpers.TPLink.ITPLinkClient Client { get; }
+	public Helpers.TPLink.ITPLinkService Service { get; }
 
 	public void Dispose() => (_serviceProvider as IDisposable)?.Dispose();
 }
