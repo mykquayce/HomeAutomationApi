@@ -5,7 +5,11 @@ VisualStudioVersion = 17.4.32912.340
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HomeAutomationApi.Services.Tests", "HomeAutomationApi.Services.Tests\HomeAutomationApi.Services.Tests.csproj", "{EC483FBC-99BB-4791-9C0B-57CF1DD1FACE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAutomationApi.Services", "HomeAutomationApi.Services\HomeAutomationApi.Services.csproj", "{19A1FD15-8CBF-44E4-9E77-10893249DAA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HomeAutomationApi.Services", "HomeAutomationApi.Services\HomeAutomationApi.Services.csproj", "{19A1FD15-8CBF-44E4-9E77-10893249DAA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAutomationApi.WebApplication", "HomeAutomationApi.WebApplication\HomeAutomationApi.WebApplication.csproj", "{08CC81A1-0D5A-4B4E-B9A5-D27ACCCB6759}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeAutomationApi.WebApplication.Tests", "HomeAutomationApi.WebApplication.Tests\HomeAutomationApi.WebApplication.Tests.csproj", "{F38BA336-2E49-491E-9356-6A6922DD44AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{19A1FD15-8CBF-44E4-9E77-10893249DAA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19A1FD15-8CBF-44E4-9E77-10893249DAA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19A1FD15-8CBF-44E4-9E77-10893249DAA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08CC81A1-0D5A-4B4E-B9A5-D27ACCCB6759}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08CC81A1-0D5A-4B4E-B9A5-D27ACCCB6759}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08CC81A1-0D5A-4B4E-B9A5-D27ACCCB6759}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08CC81A1-0D5A-4B4E-B9A5-D27ACCCB6759}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F38BA336-2E49-491E-9356-6A6922DD44AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F38BA336-2E49-491E-9356-6A6922DD44AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F38BA336-2E49-491E-9356-6A6922DD44AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F38BA336-2E49-491E-9356-6A6922DD44AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
