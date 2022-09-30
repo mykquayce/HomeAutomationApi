@@ -7,6 +7,8 @@ public class UnitTest1
 {
 	[Theory]
 	[InlineData("/tplink/vr%20front/on")]
+	[InlineData("/philipshue/wall%20right/off")]
+	[InlineData("/philipshue/wall%20right/on")]
 	public async Task Test1(string requestUri)
 	{
 		string body;
