@@ -11,6 +11,9 @@ public class PhilipsHueService : IPhilipsHueService
 		_service = Guard.Argument(service).NotNull().Value;
 	}
 
+	public IAsyncEnumerable<string> GetAliasesAsync(CancellationToken? cancellationToken = null)
+		=> _service.GetLightAliasesAsync(cancellationToken);
+
 	public Task<bool> GetPowerAsync(string alias, CancellationToken? cancellationToken = null)
 	{
 		return _service.GetLightPowerAsync(alias, cancellationToken);

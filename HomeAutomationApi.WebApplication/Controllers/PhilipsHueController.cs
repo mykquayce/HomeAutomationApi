@@ -13,6 +13,19 @@ public class PhilipsHueController : ControllerBase
 		_service = service;
 	}
 
+	[HttpGet("aliases")]
+	public async Task<IActionResult> Aliases()
+	{
+		var aliases = await _service.GetAliasesAsync().ToListAsync();
+
+		if (aliases.Any())
+		{
+			return Ok(aliases);
+		}
+
+		return NotFound();
+	}
+
 	[HttpPut("{alias}/off")]
 	public async Task<IActionResult> Off(string alias)
 	{
