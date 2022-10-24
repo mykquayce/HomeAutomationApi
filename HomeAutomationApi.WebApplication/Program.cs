@@ -1,30 +1,16 @@
-using Microsoft.Extensions.Options;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services
-	.AddNetworkDiscoveryApi(builder.Configuration)
-	.AddPhilipsHue(provider =>
+	.AddNetworkDiscovery(builder.Configuration.GetSection("identity"), builder.Configuration.GetSection("networkdiscovery"))
+	.AddPhilipsHue(builder.Configuration.GetSection("philipshue"), provider =>
 	{
-		var config = new Helpers.PhilipsHue.Config();
-		builder.Configuration.GetSection("philipshue").Bind(config);
-
-		if (config.Host is not null)
-		{
-			return config;
-		}
-
-		var physicalAddressString = builder.Configuration.GetSection("philipshue")["physicalAddress"];
-		var physicalAddress = System.Net.NetworkInformation.PhysicalAddress.Parse(physicalAddressString);
-
-		var resolver = provider.GetRequiredService<Helpers.NetworkDiscoveryApi.Delegates.ResolvePhysicalAddress>();
-
-		(_, _, var ip, _, _) = resolver(physicalAddress);
-
-		var host = new Uri("http://" + ip.ToString());
-
-		return config with { Host = host, };
+		var disco = provider.GetRequiredService<Helpers.NetworkDiscovery.IClient>();
+		(_, _, IPAddress ip, _, _) = disco.ResolveAsync("philipshue").GetAwaiter().GetResult();
+		var uri = new UriBuilder("http", ip.ToString()).Uri;
+		return uri;
 	})
 	.AddTPLink(Helpers.TPLink.Config.Defaults)
 	.AddTransient<HomeAutomationApi.Services.IPhilipsHueService, HomeAutomationApi.Services.Concrete.PhilipsHueService>()

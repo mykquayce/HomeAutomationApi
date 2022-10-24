@@ -4,20 +4,9 @@ namespace HomeAutomationApi.Services.Tests.Fixtures;
 
 public sealed class TPLinkFixture : IDisposable
 {
-	private readonly IServiceProvider _serviceProvider;
+	private readonly ServiceProviderFixture _serviceProviderFixture = new();
 
-	public TPLinkFixture()
-	{
-		_serviceProvider = new ServiceCollection()
-			.AddTPLink(Helpers.TPLink.Config.Defaults)
-			.BuildServiceProvider();
-
-		Client = _serviceProvider.GetRequiredService<Helpers.TPLink.ITPLinkClient>();
-		Service = _serviceProvider.GetRequiredService<Helpers.TPLink.ITPLinkService>();
-	}
-
-	public Helpers.TPLink.ITPLinkClient Client { get; }
-	public Helpers.TPLink.ITPLinkService Service { get; }
-
-	public void Dispose() => (_serviceProvider as IDisposable)?.Dispose();
+	public Helpers.TPLink.ITPLinkClient Client => _serviceProviderFixture.GetRequiredService<Helpers.TPLink.ITPLinkClient>();
+	public Helpers.TPLink.ITPLinkService Service => _serviceProviderFixture.GetRequiredService<Helpers.TPLink.ITPLinkService>();
+	public void Dispose() => _serviceProviderFixture.Dispose();
 }

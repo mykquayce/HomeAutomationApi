@@ -4,21 +4,20 @@ namespace HomeAutomationApi.Services.Concrete;
 
 public class TPLinkService : ITPLinkService
 {
-	private readonly Helpers.NetworkDiscoveryApi.IService _networkDiscoveryService;
+	private readonly Helpers.NetworkDiscovery.IClient _networkDiscoveryClient;
 	private readonly Helpers.TPLink.ITPLinkService _tpLinkService;
 
 	public TPLinkService(
-		Helpers.NetworkDiscoveryApi.IService networkDiscoveryService,
+		Helpers.NetworkDiscovery.IClient networkDiscoveryClient,
 		Helpers.TPLink.ITPLinkService tpLinkService)
 	{
-		_networkDiscoveryService = Guard.Argument(networkDiscoveryService).NotNull().Value;
+		_networkDiscoveryClient = Guard.Argument(networkDiscoveryClient).NotNull().Value;
 		_tpLinkService = Guard.Argument(tpLinkService).NotNull().Value;
 	}
 
-	public async Task SetStateAsync(string alias, bool state, CancellationToken? cancellationToken = null)
+	public async Task SetStateAsync(string alias, bool state, CancellationToken cancellationToken = default)
 	{
-		cancellationToken ??= CancellationToken.None;
-		(_, _, var ip, _, _) = await _networkDiscoveryService.GetLeaseAsync(alias, cancellationToken);
+		(_, _, var ip, _, _) = await _networkDiscoveryClient.ResolveAsync(alias, cancellationToken);
 		await _tpLinkService.SetStateAsync(ip, state);
 	}
 }
