@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services
 	.AddNetworkDiscovery(builder.Configuration.GetSection("identity"), builder.Configuration.GetSection("networkdiscovery"))
+	.AddElgato(builder.Configuration.GetSection("elgato"))
 	.AddPhilipsHue(builder.Configuration.GetSection("philipshue"), provider =>
 	{
 		var disco = provider.GetRequiredService<Helpers.NetworkDiscovery.IClient>();
@@ -13,6 +14,7 @@ builder.Services
 		return uri;
 	})
 	.AddTPLink(Helpers.TPLink.Config.Defaults)
+	.AddTransient<HomeAutomationApi.Services.IElgatoService, HomeAutomationApi.Services.Concrete.ElgatoService>()
 	.AddTransient<HomeAutomationApi.Services.IPhilipsHueService, HomeAutomationApi.Services.Concrete.PhilipsHueService>()
 	.AddTransient<HomeAutomationApi.Services.ITPLinkService, HomeAutomationApi.Services.Concrete.TPLinkService>();
 
