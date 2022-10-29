@@ -7,6 +7,7 @@ public class UnitTest1
 {
 	[Theory]
 	//[InlineData("/tplink/vr%20front/on")]
+	[InlineData("/globalcache/amp-power-toggle")]
 	[InlineData("/philipshue/wall%20right/off")]
 	[InlineData("/philipshue/wall%20right/on")]
 	[InlineData("/Elgato/keylight/toggle")]

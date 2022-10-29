@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
 	.AddNetworkDiscovery(builder.Configuration.GetSection("identity"), builder.Configuration.GetSection("networkdiscovery"))
 	.AddElgato(builder.Configuration.GetSection("elgato"))
+	.AddGlobalCache(builder.Configuration.GetSection("globalcache"), builder.Configuration.GetSection("globalcache:messagesdictionary"))
 	.AddPhilipsHue(builder.Configuration.GetSection("philipshue"), provider =>
 	{
 		var disco = provider.GetRequiredService<Helpers.NetworkDiscovery.IClient>();
