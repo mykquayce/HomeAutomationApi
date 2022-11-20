@@ -14,7 +14,7 @@ builder.Services
 		var uri = new UriBuilder("http", ip.ToString()).Uri;
 		return uri;
 	})
-	.AddTPLink(Helpers.TPLink.Config.Defaults)
+	.AddTPLink()
 	.AddTransient<HomeAutomationApi.Services.IElgatoService, HomeAutomationApi.Services.Concrete.ElgatoService>()
 	.AddTransient<HomeAutomationApi.Services.IPhilipsHueService, HomeAutomationApi.Services.Concrete.PhilipsHueService>()
 	.AddTransient<HomeAutomationApi.Services.ITPLinkService, HomeAutomationApi.Services.Concrete.TPLinkService>();

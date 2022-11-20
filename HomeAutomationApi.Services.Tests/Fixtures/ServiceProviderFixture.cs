@@ -23,7 +23,7 @@ public sealed class ServiceProviderFixture : IDisposable
 				var uri = new UriBuilder("http", ip.ToString()).Uri;
 				return uri;
 			})
-			.AddTPLink(Helpers.TPLink.Config.Defaults)
+			.AddTPLink()
 			.AddTransient<IPhilipsHueService, Concrete.PhilipsHueService>()
 			.AddTransient<ITPLinkService, Concrete.TPLinkService>()
 			.BuildServiceProvider();

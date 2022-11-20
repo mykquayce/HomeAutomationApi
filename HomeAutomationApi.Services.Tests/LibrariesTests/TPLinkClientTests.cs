@@ -1,25 +1,43 @@
 ﻿using System.Net;
+using System.Net.NetworkInformation;
 
 namespace HomeAutomationApi.Services.Tests.LibrariesTests;
 
 [Collection(nameof(NonParallelCollectionDefinitionClass))]
 public class TPLinkClientTests : IClassFixture<Fixtures.TPLinkFixture>
 {
-	private readonly Helpers.TPLink.ITPLinkClient _tpLinkClient;
+	private readonly Helpers.TPLink.IClient _sut;
+	private readonly Helpers.TPLink.IDiscoveryClient _discoveryClient;
 
-	public TPLinkClientTests(Fixtures.TPLinkFixture tpLinkFixture)
+	public TPLinkClientTests(Fixtures.TPLinkFixture fixture)
 	{
-		_tpLinkClient = tpLinkFixture.Client;
+		_sut = fixture.Client;
+		_discoveryClient = fixture.DiscoveryClient;
 	}
 
-	[Theory]
-	[InlineData(new byte[4] { 192, 168, 1, 143, })]
-	public async Task GetSystemInfoTests(byte[] address)
-	{
-		var ip = new IPAddress(address);
-		var info = await _tpLinkClient.GetSystemInfoAsync(ip);
+	private IAsyncEnumerable<IPAddress> GetDevicesIPAddressesAsync()
+		=> _discoveryClient.DiscoverAsync().Select(tuple => tuple.Item2);
 
-		Assert.NotNull(info);
-		Assert.NotNull(info.Alias);
+	[Fact]
+	public async Task GetSystemInfoTests()
+	{
+		var ips = GetDevicesIPAddressesAsync();
+
+		await foreach (var ip in ips)
+		{
+			var info = await _sut.GetSystemInfoAsync(ip).ToArrayAsync();
+
+			Assert.Single(info);
+			(string alias, PhysicalAddress mac, string model, int relay_state) = info[0];
+
+			Assert.NotNull(alias);
+			Assert.NotEmpty(alias);
+			Assert.NotNull(mac);
+			Assert.NotEqual(default, mac);
+			Assert.NotEqual(PhysicalAddress.None, mac);
+			Assert.NotNull(model);
+			Assert.NotEmpty(model);
+			Assert.InRange(relay_state, 0, 1);
+		}
 	}
 }
