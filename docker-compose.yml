@@ -1,0 +1,52 @@
+version: '3.7'
+
+services:
+ 
+  api:
+    image: eassbhhtgu/homeautomationapi:latest
+    entrypoint: bash -c "/usr/sbin/update-ca-certificates && dotnet HomeAutomationApi.WebApplication.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_Kestrel__Certificates__Default__KeyPath: /run/secrets/localhost.key
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /run/secrets/localhost.crt
+      ASPNETCORE_HTTPS_PORT: "443"
+      ASPNETCORE_URLS: https://+
+
+      #elgato
+      elgato:port: "9123"
+      elgato:scheme: http
+
+      #globalcache
+      globalcache:buffersize: "1024"
+      globalcache:hostname: iTach059CAD
+      globalcache:messagesdictionary:amp-mute-toggle: sendir,1:1,1,40192,2,1,96,24,24,24,24,24,48,24,24,24,48,24,24,24,24,24,24,24,24,24,24,24,24,24,48,24,48,24,24,24,24,4000\r
+      globalcache:messagesdictionary:amp-power-toggle: sendir,1:1,1,40192,2,1,96,24,48,24,24,24,48,24,24,24,48,24,24,24,24,24,24,24,24,24,24,24,24,24,48,24,48,24,24,24,24,4000\r
+      globalcache:messagesdictionary:amp-volume-down: sendir,1:1,1,40192,2,1,96,24,48,24,48,24,24,24,24,24,48,24,24,24,24,24,24,24,24,24,24,24,24,24,48,24,48,24,24,24,24,4000\r
+      globalcache:messagesdictionary:amp-volume-up: sendir,1:1,1,40192,2,1,96,24,24,24,48,24,24,24,24,24,48,24,24,24,24,24,24,24,24,24,24,24,24,24,48,24,48,24,24,24,24,4000\r
+      globalcache:port: "4998"
+
+      #philipshue
+      philipshue:physicalAddress: ecb5fa18e324
+      philipshue:username: i35sdUz4iZI0XPWxbIdQKdp76t4cH8LOwUCtFcFJ
+
+      #identity
+      NetworkDiscovery:BaseAddress: https://networkdiscovery/
+      Identity:Authority: https://identityserver/
+      Identity:ClientId: elgatoapi
+      Identity:ClientSecret: 8556e52c6ab90d042bb83b3f0c8894498beeb65cf908f519a2152aceb131d3ee
+      Identity:Scope: networkdiscovery
+    ports:
+    - 38934:443/tcp
+    secrets:
+    - source: localhost.crt
+    - source: localhost.key
+    - source: ca.crt
+      target: /usr/local/share/ca-certificates/ca.crt
+
+secrets:
+  ca.crt:
+    file: ${USERPROFILE}\.aspnet\https\ca.crt
+  localhost.crt:
+    file: ${USERPROFILE}\.aspnet\https\homeautomationapi.crt
+  localhost.key:
+    file: ${USERPROFILE}\.aspnet\https\homeautomationapi.key
