@@ -4,8 +4,9 @@ docker pull mcr.microsoft.com/dotnet/sdk:7.0
 if (!$?) { return; }
 
 # build
+$secret = 'id=ca_crt,src={0}\.aspnet\https\ca.crt' -f ${env:userprofile}
 docker build `
-	--secret id=ca_crt,src=${env:userprofile}\.aspnet\https\ca.crt `
+	--secret $secret `
 	--tag eassbhhtgu/homeautomationapi:latest `
 	.
 if (!$?) { return; }
